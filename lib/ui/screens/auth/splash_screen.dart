@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
 import 'package:taskmanager/ui/controllers/auth_controller.dart';
 import 'package:taskmanager/ui/screens/auth/signin_screen.dart';
 import 'package:taskmanager/ui/screens/main_bottom_navbar.dart';
@@ -19,9 +20,15 @@ class _SplashScreenState extends State<SplashScreen> {
     debugPrint(logInCheck.toString());
     await Future.delayed(const Duration(seconds: 1));
     if (mounted) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-        return logInCheck ? const MainBottomNavBar() : const SignInScreen();
-      }));
+      Get.off(logInCheck ? const MainBottomNavBar() : const SignInScreen());
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) {
+      //       return logInCheck ? const MainBottomNavBar() : const SignInScreen();
+      //     },
+      //   ),
+      // );
     }
   }
 

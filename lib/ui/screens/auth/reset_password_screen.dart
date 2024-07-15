@@ -1,15 +1,13 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:taskmanager/data/models/network_response.dart';
-import 'package:taskmanager/data/network_caller/network_caller.dart';
-import 'package:taskmanager/data/utilities/urls.dart';
+import 'package:get/get.dart';
+import 'package:taskmanager/ui/controllers/reset_password_controller.dart';
 // import 'package:taskmanager/ui/screens/auth/email_verification_screen.dart';
 // import 'package:taskmanager/ui/screens/auth/sign_up_screen.dart';
 import 'package:taskmanager/ui/screens/auth/signin_screen.dart';
 import 'package:taskmanager/ui/utility/app_colors.dart';
 import 'package:taskmanager/ui/widgets/background_widget.dart';
 import 'package:taskmanager/ui/widgets/circuler_process_indicator.dart';
-import 'package:taskmanager/ui/widgets/snack_bar_message.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen(
@@ -22,11 +20,15 @@ class ResetPasswordScreen extends StatefulWidget {
 }
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
-  final TextEditingController _newPasswordTEcontroller = TextEditingController();
+  final TextEditingController _newPasswordTEcontroller =
+      TextEditingController();
   final TextEditingController _confirmNewPasswordTEcontroller =
       TextEditingController();
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
-  bool _confirmNewPasswordInProcess = false;
+
+  ResetPasswordController resetPasswordController =
+      Get.find<ResetPasswordController>();
+
   @override
   void dispose() {
     super.dispose();
@@ -67,8 +69,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       decoration: const InputDecoration(
                         hintText: 'New Password',
                       ),
-                      validator: (String? value){
-                        if(value!.isEmpty){
+                      validator: (String? value) {
+                        if (value!.isEmpty) {
                           return 'Enter a new password';
                         }
                       },
@@ -79,27 +81,34 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       decoration: const InputDecoration(
                         hintText: 'Confirm New Password',
                       ),
-                      validator: (String? value){
-                        if(value!.isEmpty){
+                      validator: (String? value) {
+                        if (value!.isEmpty) {
                           return 'Please Enter Confirm New Password';
                         }
-                        if(value! != _newPasswordTEcontroller.text){
+                        if (value! != _newPasswordTEcontroller.text) {
                           return 'Password did not matched!';
                         }
                       },
                     ),
                     const SizedBox(height: 16),
-                    Visibility(
-                      visible: _confirmNewPasswordInProcess == false,
-                      replacement: const CircleLoader(),
-                      child: ElevatedButton(
-                          onPressed: (){
-                            if(_formkey.currentState!.validate()){
+                    GetBuilder<ResetPasswordController>(
+                        builder: (resetPasswordController) {
+                      return Visibility(
+                        visible: resetPasswordController
+                                .confirmNewPasswordInProcess ==
+                            false,
+                        replacement: const CircleLoader(),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (_formkey.currentState!.validate()) {
                               _onTapConfirmButton();
                               debugPrint('Reset Password Sucecessfull');
                             }
-                          }, child: const Text('Confirm'),),
-                    ),
+                          },
+                          child: const Text('Confirm'),
+                        ),
+                      );
+                    }),
                     const SizedBox(
                       height: 36,
                     ),
@@ -136,39 +145,55 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   void _onTapSignInButton() {
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const SignInScreen()),
-        (route) => false);
+    Get.to(const SignInScreen());
+    // Navigator.pushAndRemoveUntil(
+    //     context,
+    //     MaterialPageRoute(builder: (context) => const SignInScreen()),
+    //     (route) => false);
   }
 
   Future<void> _onTapConfirmButton() async {
-    _confirmNewPasswordInProcess = true;
-    if (mounted) setState(() {});
-    Map<String, dynamic> requestData = {
-      "email": widget.userEmail,
-      "OTP": widget.OTP,
-      "password": _confirmNewPasswordTEcontroller.text
-    };
-    NetworkResponse response = await NetworkCaller.postRequest(
-        Urls.recoverResetPass, requestData);
-    if (response.isSuccess) {
-      if (mounted) {
-        showSnackBarMessage(context, 'Password reset successful');
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const SignInScreen()),
-                (route) => false);
-      }
+    bool result = await resetPasswordController.onTapConfirmButton(
+      widget.userEmail,
+      widget.OTP,
+      _confirmNewPasswordTEcontroller.text,
+    );
+
+    if (result) {
+      Get.snackbar('Messege', 'Password reset successfull');
+      Get.offAll(const SignInScreen());
     } else {
-      if (response.isSuccess) {
-        if (mounted) {
-          showSnackBarMessage(
-              context, response.errorMsg ?? 'Failed! Try again');
-        }
-      }
+      Get.snackbar('Messege', resetPasswordController.errorMessege);
     }
-    _confirmNewPasswordInProcess = false;
-    if (mounted) setState(() {});
   }
+
+  // Future<void> _onTapConfirmButton() async {
+  //   _confirmNewPasswordInProcess = true;
+  //   if (mounted) setState(() {});
+  //   Map<String, dynamic> requestData = {
+  //     "email": widget.userEmail,
+  //     "OTP": widget.OTP,
+  //     "password": _confirmNewPasswordTEcontroller.text
+  //   };
+  //   NetworkResponse response = await NetworkCaller.postRequest(
+  //       Urls.recoverResetPass, requestData);
+  //   if (response.isSuccess) {
+  //     if (mounted) {
+  //       showSnackBarMessage(context, 'Password reset successful');
+  //       Navigator.pushAndRemoveUntil(
+  //           context,
+  //           MaterialPageRoute(builder: (context) => const SignInScreen()),
+  //               (route) => false);
+  //     }
+  //   } else {
+  //     if (response.isSuccess) {
+  //       if (mounted) {
+  //         showSnackBarMessage(
+  //             context, response.errorMsg ?? 'Failed! Try again');
+  //       }
+  //     }
+  //   }
+  //   _confirmNewPasswordInProcess = false;
+  //   if (mounted) setState(() {});
+  // }
 }

@@ -1,15 +1,13 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:taskmanager/data/models/network_response.dart';
-import 'package:taskmanager/data/network_caller/network_caller.dart';
-import 'package:taskmanager/data/utilities/urls.dart';
+import 'package:get/get.dart';
+import 'package:taskmanager/ui/controllers/email_verification_controller.dart';
 import 'package:taskmanager/ui/screens/auth/pin_verification_screen.dart';
 import 'package:taskmanager/ui/screens/auth/signin_screen.dart';
 import 'package:taskmanager/ui/utility/app_colors.dart';
 import 'package:taskmanager/ui/utility/app_constants.dart';
 import 'package:taskmanager/ui/widgets/background_widget.dart';
 import 'package:taskmanager/ui/widgets/circuler_process_indicator.dart';
-import 'package:taskmanager/ui/widgets/snack_bar_message.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
   const EmailVerificationScreen({super.key});
@@ -23,7 +21,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   final TextEditingController _emailTEcontroller = TextEditingController();
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
 
-  bool _emailVerificationInProcess = false;
+  // bool _emailVerificationInProcess = false;
+  EmailVerificationController emailVerificationController =
+      Get.find<EmailVerificationController>();
   @override
   void dispose() {
     super.dispose();
@@ -78,18 +78,22 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    Visibility(
-                      visible: _emailVerificationInProcess == false,
-                      replacement: const CircleLoader(),
-                      child: ElevatedButton(
-                          onPressed: () {
-                            if (_formkey.currentState!.validate()) {
-                              _onTapPinVerificationButton();
-                              debugPrint('ok');
-                            }
-                          },
-                          child: const Icon(Icons.arrow_forward_ios)),
-                    ),
+                    GetBuilder<EmailVerificationController>(
+                        builder: (emailVerificationController) {
+                      return Visibility(
+                        visible: emailVerificationController
+                                .emailVerificationInProcess ==
+                            false,
+                        replacement: const CircleLoader(),
+                        child: ElevatedButton(
+                            onPressed: () {
+                              if (_formkey.currentState!.validate()) {
+                                _onTapEmailVerification();
+                              }
+                            },
+                            child: const Icon(Icons.arrow_forward_ios)),
+                      );
+                    }),
                     const SizedBox(
                       height: 36,
                     ),
@@ -126,36 +130,46 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   }
 
   void _onTapSignInButton() {
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const SignInScreen()),
-        (route) => false);
+    Get.offAll(() => const SignInScreen());
+    // Navigator.pushAndRemoveUntil(
+    //     context,
+    //     MaterialPageRoute(builder: (context) => const SignInScreen()),
+    //     (route) => false);
   }
 
-  Future<void> _onTapPinVerificationButton() async {
-    _emailVerificationInProcess = true;
-    if (mounted) setState(() {});
-    String userEmail = _emailTEcontroller!.text.trim();
-    NetworkResponse response =
-        await NetworkCaller.getRequest(Urls.recoveryEmail(userEmail));
-    _emailVerificationInProcess = false;
-    if (mounted) setState(() {});
-    if (response.isSuccess) {
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PinVerificationScreen(
-              userEmail: userEmail,
-            ),
-          ),
-        );
-      }
-    } else {
-      if (mounted) {
-        showSnackBarMessage(context,
-            response.errorMsg.toString() ?? 'Failed! please try again');
-      }
-    }
+  // Future<void> _onTapPinVerificationButton() async {
+  //   _emailVerificationInProcess = true;
+  //   if (mounted) setState(() {});
+  //   String userEmail = _emailTEcontroller!.text.trim();
+  //   NetworkResponse response =
+  //       await NetworkCaller.getRequest(Urls.recoveryEmail(userEmail));
+  //   _emailVerificationInProcess = false;
+  //   if (mounted) setState(() {});
+  //   if (response.isSuccess) {
+  //     if (mounted) {
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => PinVerificationScreen(
+  //             userEmail: userEmail,
+  //           ),
+  //         ),
+  //       );
+  //     }
+  //   } else {
+  //     if (mounted) {
+  //       showSnackBarMessage(context,
+  //           response.errorMsg.toString() ?? 'Failed! please try again');
+  //     }
+  //   }
+  // }
+  Future<void> _onTapEmailVerification() async {
+    bool result = await emailVerificationController
+        .onTapEmailVerificationButton(_emailTEcontroller.text.trim());
+
+    result
+        ? Get.to(
+            PinVerificationScreen(userEmail: _emailTEcontroller.text.trim()))
+        : Get.snackbar('Messege', emailVerificationController.errorMessege);
   }
 }

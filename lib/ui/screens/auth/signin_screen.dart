@@ -1,10 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:taskmanager/data/models/login_model.dart';
-import 'package:taskmanager/data/models/network_response.dart';
-import 'package:taskmanager/data/network_caller/network_caller.dart';
-import 'package:taskmanager/data/utilities/urls.dart';
-import 'package:taskmanager/ui/controllers/auth_controller.dart';
+import 'package:get/get.dart';
+import 'package:taskmanager/ui/controllers/sign_in_controller.dart';
 import 'package:taskmanager/ui/screens/auth/email_verification_screen.dart';
 import 'package:taskmanager/ui/screens/auth/sign_up_screen.dart';
 import 'package:taskmanager/ui/screens/main_bottom_navbar.dart';
@@ -25,7 +22,6 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _emailTEcontroller = TextEditingController();
   final TextEditingController _passwordTEcontroller = TextEditingController();
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
-  bool _signInInProgress = false;
   @override
   void dispose() {
     super.dispose();
@@ -88,13 +84,15 @@ class _SignInScreenState extends State<SignInScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    Visibility(
-                      visible: _signInInProgress == false,
-                      replacement: const CircleLoader(),
-                      child: ElevatedButton(
-                          onPressed: _onTapSignInButton,
-                          child: const Icon(Icons.arrow_forward_ios)),
-                    ),
+                    GetBuilder<SignInController>(builder: (signInController) {
+                      return Visibility(
+                        visible: signInController.signInInProgress == false,
+                        replacement: const CircleLoader(),
+                        child: ElevatedButton(
+                            onPressed: _onTapSignInButton,
+                            child: const Icon(Icons.arrow_forward_ios)),
+                      );
+                    }),
                     const SizedBox(
                       height: 36,
                     ),
@@ -138,55 +136,27 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   void _onTapSignUpButton() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const SignUpScreen()));
-  }
-
-  Future<void> _signIn() async {
-    _signInInProgress = true;
-    if (mounted) setState(() {});
-    Map<String, dynamic> requestData = {
-      'email': _emailTEcontroller.text.trim(),
-      'password': _passwordTEcontroller.text
-    };
-
-    final NetworkResponse response =
-        await NetworkCaller.postRequest(Urls.login, requestData);
-
-    
-
-    _signInInProgress = false;
-    if(mounted) setState(() {});
-
-    if (response.isSuccess) {
-      await AuthController.clearAllData();
-      LoginModel loginModel = LoginModel.fromJson(response.responseData!);
-      await AuthController.saveUserAccessToken(loginModel.token.toString());
-      await AuthController.saveUserData(loginModel.userModel!);
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MainBottomNavBar(),
-          ),
-        );
-      }
-    }else{
-      if(mounted){
-        showSnackBarMessage(context, response.errorMsg?.toString() ?? 'Invalid Information');
-      }
-    }
-
-
+    Get.to(const SignUpScreen());
+    // Navigator.push(
+    //     context, MaterialPageRoute(builder: (context) => const SignUpScreen(),),);
   }
 
   void _onTapForgotpasswordButton() {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => const EmailVerificationScreen()));
+    Get.to(const EmailVerificationScreen());
+    //   Navigator.push(
+    //       context,
+    //       MaterialPageRoute(
+    //           builder: (context) => const EmailVerificationScreen()));
   }
 
-  void _onTapSignInButton() {
+  void _onTapSignInButton() async {
     if (_formkey.currentState!.validate()) {
-      _signIn();
+      SignInController signInController = Get.find<SignInController>();
+      bool result = await signInController.signIn(
+          _emailTEcontroller.text.trim(), _passwordTEcontroller.text);
+      result
+          ? Get.offAll(() => const MainBottomNavBar())
+          : showSnackBarMessage(context, signInController.errorMessege);
     }
   }
 }
