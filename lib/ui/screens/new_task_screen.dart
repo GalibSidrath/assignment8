@@ -6,6 +6,7 @@ import 'package:taskmanager/ui/screens/add_new_task_screen.dart';
 import 'package:taskmanager/ui/utility/app_colors.dart';
 import 'package:taskmanager/ui/widgets/circuler_process_indicator.dart';
 import 'package:taskmanager/ui/widgets/profile_appbar.dart';
+import 'package:taskmanager/ui/widgets/snack_bar_message.dart';
 import 'package:taskmanager/ui/widgets/task_item.dart';
 import 'package:taskmanager/ui/widgets/task_summary_card.dart';
 
@@ -23,9 +24,25 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     initialcall();
   }
 
-  initialcall() {
-    Get.find<NewTaskController>().getNewTask();
-    Get.find<TaskByCountController>().getTaskStatusByCount();
+  void initialcall() {
+    _getNewTasks();
+    _getStatusByCount();
+  }
+
+  Future<void> _getNewTasks() async {
+    bool newTaskResult = await Get.find<NewTaskController>().getNewTask();
+    newTaskResult
+        ? showSnackBarMessage(context, 'All new task loaded')
+        : showSnackBarMessage(context, 'Failed to fetch new tasks. Try again');
+  }
+
+  Future<void> _getStatusByCount() async {
+    bool taskByStatusCountResult =
+        await Get.find<TaskByCountController>().getTaskStatusByCount();
+    taskByStatusCountResult
+        ? null
+        : showSnackBarMessage(
+            context, 'Failed to fetch all task status count. Try again');
   }
 
   @override

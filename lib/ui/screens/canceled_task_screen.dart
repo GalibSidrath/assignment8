@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:taskmanager/ui/controllers/canceled_task_controller.dart';
 import 'package:taskmanager/ui/widgets/circuler_process_indicator.dart';
 import 'package:taskmanager/ui/widgets/profile_appbar.dart';
+import 'package:taskmanager/ui/widgets/snack_bar_message.dart';
 import 'package:taskmanager/ui/widgets/task_item.dart';
 
 class CanceledTaskScreen extends StatefulWidget {
@@ -16,7 +17,15 @@ class _CanceledTaskScreenState extends State<CanceledTaskScreen> {
   @override
   void initState() {
     super.initState();
-    Get.find<CanceledTaskController>().getCanceledTask();
+    _getCanceledTask();
+  }
+
+  Future<void> _getCanceledTask() async {
+    bool result = await Get.find<CanceledTaskController>().getCanceledTask();
+    result
+        ? showSnackBarMessage(context, 'All canceled task loaded')
+        : showSnackBarMessage(
+            context, 'Failed to fetch canceled tasks. Try again');
   }
 
   @override
@@ -27,7 +36,7 @@ class _CanceledTaskScreenState extends State<CanceledTaskScreen> {
         padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
         child: RefreshIndicator(
           onRefresh: () async {
-            Get.find<CanceledTaskController>().getCanceledTask();
+            _getCanceledTask();
           },
           child: GetBuilder<CanceledTaskController>(
               builder: (canceledTaskController) {
@@ -40,7 +49,7 @@ class _CanceledTaskScreenState extends State<CanceledTaskScreen> {
                     return TaskItem(
                       taskModel: canceledTaskController.canceledTaskList[index],
                       onUpdateTask: () {
-                        Get.find<CanceledTaskController>().getCanceledTask();
+                        _getCanceledTask();
                       },
                     );
                   }),

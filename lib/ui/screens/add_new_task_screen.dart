@@ -4,6 +4,7 @@ import 'package:taskmanager/ui/controllers/add_new_task_controller.dart';
 import 'package:taskmanager/ui/widgets/background_widget.dart';
 import 'package:taskmanager/ui/widgets/circuler_process_indicator.dart';
 import 'package:taskmanager/ui/widgets/profile_appbar.dart';
+import 'package:taskmanager/ui/widgets/snack_bar_message.dart';
 
 class AddNewTaskScreen extends StatefulWidget {
   const AddNewTaskScreen({super.key});
@@ -69,9 +70,7 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
                       child: ElevatedButton(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
-                              addNewTaskController.addNewTask(
-                                  _titleTEController.text.trim(),
-                                  _titleTEController.text);
+                              _addNewTask();
                             }
                           },
                           child: const Text('Add')),
@@ -84,6 +83,14 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _addNewTask() async {
+    bool result = await Get.find<AddNewTaskController>()
+        .addNewTask(_titleTEController.text.trim(), _titleTEController.text);
+    result
+        ? showSnackBarMessage(context, 'New Task Added Successfully')
+        : showSnackBarMessage(context, 'Failed to add New Task. Try again');
   }
 
   // Future<void> _addNewTask() async{

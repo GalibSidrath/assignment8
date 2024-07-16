@@ -7,6 +7,7 @@ import 'package:taskmanager/ui/controllers/update_profile_controller.dart';
 import 'package:taskmanager/ui/widgets/background_widget.dart';
 import 'package:taskmanager/ui/widgets/circuler_process_indicator.dart';
 import 'package:taskmanager/ui/widgets/profile_appbar.dart';
+import 'package:taskmanager/ui/widgets/snack_bar_message.dart';
 
 class UpdateProfileScreen extends StatefulWidget {
   const UpdateProfileScreen({super.key});
@@ -70,6 +71,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     decoration: const InputDecoration(hintText: 'First name'),
                     validator: (String? value) {
                       if (value!.trim().isEmpty) return 'Enter first name';
+                      return null;
                     },
                   ),
                   const SizedBox(height: 8),
@@ -78,6 +80,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     decoration: const InputDecoration(hintText: 'Last name'),
                     validator: (String? value) {
                       if (value!.trim().isEmpty) return 'Enter last name';
+                      return null;
                     },
                   ),
                   const SizedBox(height: 8),
@@ -87,6 +90,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     decoration: const InputDecoration(hintText: 'Mobile'),
                     validator: (String? value) {
                       if (value!.trim().isEmpty) return 'Enter mobile number';
+                      return null;
                     },
                   ),
                   const SizedBox(height: 8),
@@ -226,7 +230,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       _passwordTEController.text,
     );
     result
-        ? Get.snackbar('Update Messege', 'Profile updated successfully')
-        : Get.snackbar('Update Messege', updateProfileController.errorMessage);
+        ? showSnackBarMessage(context, 'Profile updated succesfully')
+        : showSnackBarMessage(context, updateProfileController.errorMessage);
   }
 }

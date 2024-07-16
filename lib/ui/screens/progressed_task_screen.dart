@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:taskmanager/ui/controllers/progressed_task_controller.dart';
 import 'package:taskmanager/ui/widgets/circuler_process_indicator.dart';
 import 'package:taskmanager/ui/widgets/profile_appbar.dart';
+import 'package:taskmanager/ui/widgets/snack_bar_message.dart';
 import 'package:taskmanager/ui/widgets/task_item.dart';
 
 class ProgressedTaskScreen extends StatefulWidget {
@@ -16,7 +17,16 @@ class _ProgressedTaskScreenState extends State<ProgressedTaskScreen> {
   @override
   void initState() {
     super.initState();
-    Get.find<ProgressedTaskController>().getProgressedTask();
+    _getProgressTask();
+  }
+
+  Future<void> _getProgressTask() async {
+    bool result =
+        await Get.find<ProgressedTaskController>().getProgressedTask();
+    result
+        ? showSnackBarMessage(context, 'All progressed task loaded')
+        : showSnackBarMessage(
+            context, 'Failed to fetch progressed tasks. Try again');
   }
 
   @override
@@ -27,7 +37,7 @@ class _ProgressedTaskScreenState extends State<ProgressedTaskScreen> {
         padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
         child: RefreshIndicator(
           onRefresh: () async {
-            Get.find<ProgressedTaskController>().getProgressedTask();
+            _getProgressTask();
           },
           child: GetBuilder<ProgressedTaskController>(
               builder: (progressedTaskController) {
@@ -42,7 +52,7 @@ class _ProgressedTaskScreenState extends State<ProgressedTaskScreen> {
                       taskModel:
                           progressedTaskController.progressedTaskList[index],
                       onUpdateTask: () {
-                        progressedTaskController.getProgressedTask();
+                        _getProgressTask();
                       },
                     );
                   }),
